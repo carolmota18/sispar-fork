@@ -1,4 +1,6 @@
-import { useState } from "react"; // Importa o React e o hook useState
+import { useState,useEffect } from "react"; // Importa o React e o hook useState
+import Api from "../../services/Api.jsx";
+import React from "react";
 
 import NavBar from "../navbar/NavBar.jsx";
 import styles from "./Solicitacao.module.scss";
@@ -76,7 +78,7 @@ function Solicitacao() {
       distanciaKm,
       valorKm,
       valorFaturado,
-      despesa,
+      despesa
     };
     //alert("Formulário enviado com sucesso!"); //mostra um alerta na tela para o usuário, avisando que o formulário foi enviado corretamente
 
@@ -92,28 +94,56 @@ function Solicitacao() {
 
   //--------------------FUNÇÃO PARA ENVIAR OS DADOS PARA O BD -----------
 
-  const API_URL = "https://minhaapi.com.br"; //// URL base da API (o endereço do servidor que vai receber os dados)
+  const [foienviado,setFoiEnviado] = useState(false);
 
   //// Função que será chamada quando quisermos enviar os dados do reembolso
   const enviarParaAnalise = async () => {
     // O try faz parte da sintaxe do JavaScript e é usado para tentar executar um bloco de código. Ele vem junto com o catch, que captura e trata qualquer erro que acontecer dentro do try.
     try { 
-      const response = await fetch(`${API_URL}/api/reembolsos`, { // tentar enviar os dados
-        // Aqui usamos o fetch para fazer uma requisição para o servidor
-        method: "POST", // Enviamos os dados com o método POST (ou seja, estamos mandando informações para serem salvas)
-        headers: { "Content-Type": "application/json" }, // Estamos dizendo que os dados estão no formato JSON
-        body: JSON.stringify(dadosReembolso), // Aqui enviamos os dados (transformados em texto JSON)
-      });
+      
+      //aqui colocamos o que queremos "tentar" fazer
 
-      if (response.ok) {
-        alert("Solicitação enviada com sucesso!"); // Se a resposta do servidor for OK (status 200), mostramos mensagem de sucesso
-      } else {
-        alert("Erro ao enviar solicitação"); // Se deu algum erro na requisição (ex: erro 400 ou 500), mostramos mensagem de erro
-      }
+      //1º argumento é caminho da rota "/refunds/new" é uma rota no seu backend
+      //2º argumento é o que será enviado: dadosReembolso, os dados do formulário.
+
+      //Faz a requisição POST para o endpoint /refunds/new
+      //Enviando juntos os dados que estão salvos no estado "dadosReembolso"
+
+      const response = await Api.post("/refunds/new",dadosReembolso);
+      console.log("Reaposta da api",response);//Mostra no console a resposta da API
+      alert("Reembolso solicitado com sucesso");//Mostra um alerta avisando que deu certo.
+      setFoiEnviado(true); //Ativando o estado "foiEnviado" para true
+
+
     } catch (error) {
-      alert("Erro na conexão com o servidor"); // Se algo der errado no try, cai aqui (sem internet, servidor fora do ar, etc), mostramos essa mensagem
+     //Caso dê erro na hora de enviar, ele mostra o erro no console.
+     console.log("Erro ao enviar",error);//Mostra o ero se algo der errado
     }
   };
+
+   //HOOK USEEFFECT,  serve para reagir a mudanças nos estados.
+
+   useEffect(() =>{
+    if(foienviado) {
+      setDadosReembolso([]); //Limpa os dados do formulário, ou seja, zera o estado.
+      setFoiEnviado(false);//foi Enviado volta a ser (false)
+    }
+   }, [foienviado]  //Esse efeito só roda quando "foiEnviado" mudar
+
+   //RESUMINDO:
+  //O if (foiEnviado) serve para executar algo somente quando o envio foi concluído.
+  //O estado começa como false, mas vira true quando o envio é feito com sucesso.
+  //O useEffect só roda quando essa variável muda, e por isso o if é necessário para não rodar à toa.
+
+
+
+  //Resumo simplificado:
+  //useState cria variáveis que guardam informações e atualizam a tela.
+  //A função enviarParaAnalise manda os dados pra um servidor (API).
+  // useEffect roda automaticamente quando a variável foiEnviado muda.
+  //Depois que os dados são enviados, ele limpa tudo pra poder começar de novo.
+
+  );
 
   ///----------------FUNÇÃO DE DELETAR ----------------------
   // Essa função serve para remover um item da lista de reembolsos, com base no número da posição dele (índice). Ela cria uma nova lista sem aquele item e atualiza o estado com essa nova lista.
@@ -162,6 +192,8 @@ function Solicitacao() {
     setDadosReembolso([]); // limpa todos os dados salvos
     limparCampos(); // limpa os inputs também (se quiser)
   };
+
+  
 
   //-------------------
 
@@ -323,7 +355,7 @@ e.target.value é o que foi digitado pelo usuário.
                   onChange={(e) => setPep(e.target.value)}
                   name="pep"
                   id="PEP"
-                  type="text"
+                  type="number"
                 />
               </div>
 
@@ -334,6 +366,7 @@ e.target.value é o que foi digitado pelo usuário.
                   onChange={(e) => setMoeda(e.target.value)}
                   name="moeda"
                   id="coents"
+                  type="select"
                 >
                   <option value=""></option>
                   <option value="brl">BRL</option>
@@ -349,7 +382,7 @@ e.target.value é o que foi digitado pelo usuário.
                   name="distanciaKm"
                   onChange={(e) => setDistanciaKm(e.target.value)}
                   id="distance-input"
-                  type="text"
+                  type="number"
                 />
               </div>
 
@@ -359,14 +392,14 @@ e.target.value é o que foi digitado pelo usuário.
                   value={valorKm}
                   onChange={(e) => setValorKm(e.target.value)}
                   name="valorKm"
-                  type="text"
+                  type="number"
                 />
               </div>
 
               <div className={styles.valorFaturado}>
                 <label htmlFor="faturado"> Val. Faturado </label>
                 <input
-                  type="text"
+                  type="number"
                   name="valorFaturado"
                   value={valorFaturado}
                   onChange={(e) => setValorFaturado(e.target.value)}
@@ -376,7 +409,7 @@ e.target.value é o que foi digitado pelo usuário.
               <div className={styles.despesa}>
                 <label htmlFor="taxa"> Despesa </label>
                 <input
-                  type="text"
+                  type="number"
                   id="despesa"
                   name="despesa"
                   value={despesa}

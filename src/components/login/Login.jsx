@@ -2,6 +2,8 @@ import {useNavigate} from "react-router-dom"
 //import Capa from "../../assets/Tela Login/imagem tela de login.png";
 import Logo from "../../assets/Tela Login/logo-ws.png";
 import styles from "./Login.module.scss"
+import Api from "../../services/Api"
+import { useState } from "react";
 
 function Login() {
 
@@ -9,6 +11,28 @@ const navigate = useNavigate() //Iniciando o hook useNavigate
 
 const irParaReembolsos = () => {
   navigate("/reembolsos")  //Redirecionando para a página de reembolsos
+}
+const [email,setEmail] = useState("")
+const [senha,setSenha] = useState("")
+
+const fazerLogin = async (e) => {
+  e.preventDefault()
+
+  try{
+
+    const resposta = await Api.post("/colaborador/login", {
+      "email": email,
+      "senha": senha
+    })
+    console.log(resposta.data)
+    alert("Login realizado cfom sucesso!")
+    irParaReembolsos()
+
+  }catch(error){
+    console.log("Erro ao fazer login", error)
+    alert("Erro no login aqui ó")
+  }
+
 }
 
   return (
@@ -25,19 +49,28 @@ const irParaReembolsos = () => {
         </div>
 
         <form action="">
-          <input type="email" name="email" id="email" placeholder="Email" />
+          <input 
+          type="email" 
+          name="email" 
+          id="email"
+          placeholder="Email" 
+          value={email} 
+          onChange={(e)=> setEmail(e.target.value)}
+          />
 
           <input
             type="password"
             name="password"
             id="password"
             placeholder="Senha"
+            value={senha}
+            onChange={(e)=> setSenha(e.target.value)}
           />
 
           <p>Esqueci minha senha</p>
 
           <div className={styles.boxButton}>
-            <button onClick={irParaReembolsos}>Entrar</button>
+            <button onClick={fazerLogin}>Entrar</button>
             <button>Criar conta</button>
           </div>
 
